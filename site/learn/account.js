@@ -62,6 +62,54 @@
     timer = setTimeout(sync, 2500);
   }
 
+  // Google's own "Sign in with Google" button: signs in on learnbahasa.app and hands the ID token to Supabase.
+  let gisLoading = null, gisNonce = null;
+  function loadGis() {
+    if (window.google && window.google.accounts && window.google.accounts.id) return Promise.resolve();
+    if (!gisLoading) {
+      gisLoading = new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = "https://accounts.google.com/gsi/client";
+        s.async = true; s.onload = resolve; s.onerror = reject;
+        document.head.appendChild(s);
+        setTimeout(() => reject(new Error("timeout")), 6000);
+      });
+    }
+    return gisLoading;
+  }
+  async function sha256Hex(text) {
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+    return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  }
+  async function mountGoogleButton(container, fallback) {
+    if (!cfg.googleClientId) return;
+    try {
+      await loadGis();
+      gisNonce = [...crypto.getRandomValues(new Uint8Array(24))].map((b) => b.toString(16).padStart(2, "0")).join("");
+      const hashed = await sha256Hex(gisNonce);
+      window.google.accounts.id.initialize({
+        client_id: cfg.googleClientId,
+        nonce: hashed,
+        ux_mode: "popup",
+        use_fedcm_for_button: true,
+        callback: async (resp) => {
+          const { error } = await client.auth.signInWithIdToken({ provider: "google", token: resp.credential, nonce: gisNonce });
+          if (error) toast("Couldn't sign in with Google: " + error.message);
+          else { menuOpen = false; render(); }
+        },
+      });
+      if (!document.body.contains(container)) return;
+      container.innerHTML = "";
+      window.google.accounts.id.renderButton(container, {
+        type: "standard", theme: "outline", size: "large", text: "continue_with", shape: "rectangular",
+        logo_alignment: "center", width: Math.min(272, container.clientWidth || 272), locale: "en",
+      });
+      if (fallback) fallback.hidden = true;
+    } catch {
+      // Google's script blocked or offline: keep the plain button, which uses the Supabase redirect.
+    }
+  }
+
   async function signIn(provider) {
     if (!client) return;
     const { error } = await client.auth.signInWithOAuth({ provider, options: { redirectTo: location.origin + "/learn/" } });
@@ -79,41 +127,68 @@
     const { error } = await client.rpc("delete_my_account");
     if (error) { alertBox("Couldn't delete the account: " + error.message); return; }
     await signOut();
-    alertBox("Your account and its saved progress are deleted. This browser keeps its own copy.");
+    toast("Your account and its saved progress are deleted. This browser keeps its own copy.");
   }
 
-  function alertBox(msg) {
-    const el = document.getElementById("account-card");
-    if (el) el.insertAdjacentHTML("beforeend", `<p class="note" style="color:var(--sambal);margin-top:8px">${esc(msg)}</p>`);
+  let menuOpen = false;
+  function toast(msg) {
+    const t = document.createElement("div");
+    t.className = "acct-toast"; t.setAttribute("role", "status"); t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 5000);
+  }
+  const alertBox = toast;
+
+  function initial() {
+    const meta = (user && user.user_metadata) || {};
+    const name = meta.full_name || meta.name || (user && user.email) || "?";
+    return name.trim().charAt(0).toUpperCase();
   }
 
+  // Top-right of the header: "Sign in" (opens Apple / Google), or your initial with an account menu.
   function render() {
-    const el = document.getElementById("account-card");
-    if (!el || !enabled) { if (el) el.hidden = true; return; }
-    el.hidden = false;
-    if (!user) {
-      el.innerHTML = `<h2>Save your progress</h2>
-        <p class="note">Optional. Sign in to keep your lessons and chats in sync with the iPhone app and any browser.</p>
-        <div class="card account">
-          <button class="auth apple" data-auth="apple"><span aria-hidden="true"></span> Continue with Apple</button>
-          <button class="auth google" data-auth="google"><b aria-hidden="true">G</b> Continue with Google</button>
-        </div>`;
-    } else {
-      const note = state === "syncing" ? "Syncing…" : state === "failed" ? "Couldn't sync. Check your connection." : lastSync ? `Synced ${lastSync.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}` : "Progress syncs automatically";
-      const provider = (user.app_metadata && user.app_metadata.provider) || "";
-      el.innerHTML = `<h2>Your account</h2>
-        <div class="card account signed">
-          <div><b>Signed in${provider ? " with " + (provider === "google" ? "Google" : provider === "apple" ? "Apple" : provider) : ""}</b><small>${esc(user.email || "")} · ${esc(note)}</small></div>
-          <div class="account-actions"><button class="btn ghost small" data-act="sync">Sync now</button><button class="btn ghost small" data-act="out">Sign out</button><button class="btn ghost small" data-act="delete">Delete account</button></div>
-        </div>`;
+    const slot = document.getElementById("account-slot");
+    if (!slot) return;
+    if (!enabled) { slot.hidden = true; return; }
+    slot.hidden = false;
+    const provider = user ? ((user.app_metadata && user.app_metadata.provider) || "") : "";
+    const note = state === "syncing" ? "Syncing…" : state === "failed" ? "Couldn't sync. Check your connection." : lastSync ? `Synced ${lastSync.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}` : "Progress syncs automatically";
+    slot.innerHTML = user
+      ? `<button class="acct-btn me" aria-haspopup="true" aria-expanded="${menuOpen}" data-toggle>${esc(initial())}</button>`
+      : `<button class="acct-btn" aria-haspopup="true" aria-expanded="${menuOpen}" data-toggle>Sign in</button>`;
+    if (menuOpen) {
+      slot.insertAdjacentHTML("beforeend", user
+        ? `<div class="acct-menu" role="menu">
+             <b>Signed in${provider ? " with " + (provider === "google" ? "Google" : provider === "apple" ? "Apple" : provider) : ""}</b>
+             <small>${esc(user.email || "")}</small>
+             <small class="acct-sync">${esc(note)}</small>
+             <button role="menuitem" data-act="sync">Sync now</button>
+             <button role="menuitem" data-act="out">Sign out</button>
+             <button role="menuitem" class="danger" data-act="delete">Delete account</button>
+           </div>`
+        : `<div class="acct-menu" role="menu">
+             <b>Save your progress</b>
+             <small>Optional. Sync your lessons and chats with the iPhone app and any browser.</small>
+             <button role="menuitem" class="auth apple" data-auth="apple"><span aria-hidden="true"></span> Continue with Apple</button>
+             <div class="gis" id="gis-button"></div>
+             <button role="menuitem" class="auth google" data-auth="google" id="google-fallback"><b aria-hidden="true">G</b> Continue with Google</button>
+           </div>`);
     }
-    el.querySelectorAll("[data-auth]").forEach((b) => b.onclick = () => signIn(b.dataset.auth));
-    el.querySelectorAll("[data-act]").forEach((b) => b.onclick = () => {
+    slot.querySelector("[data-toggle]").onclick = (e) => { e.stopPropagation(); menuOpen = !menuOpen; render(); };
+    slot.querySelectorAll("[data-auth]").forEach((b) => b.onclick = () => signIn(b.dataset.auth));
+    slot.querySelectorAll("[data-act]").forEach((b) => b.onclick = (e) => {
+      e.stopPropagation();
       if (b.dataset.act === "sync") sync();
-      if (b.dataset.act === "out") signOut();
+      if (b.dataset.act === "out") { menuOpen = false; signOut(); }
       if (b.dataset.act === "delete") deleteAccount(b);
     });
+    const menu = slot.querySelector(".acct-menu");
+    if (menu) menu.onclick = (e) => e.stopPropagation();
+    const gis = slot.querySelector("#gis-button");
+    if (gis) mountGoogleButton(gis, slot.querySelector("#google-fallback"));
   }
+  document.addEventListener("click", () => { if (menuOpen) { menuOpen = false; render(); } });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && menuOpen) { menuOpen = false; render(); } });
 
   async function init() {
     if (!enabled) return;

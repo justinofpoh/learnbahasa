@@ -226,8 +226,6 @@
 
         <section class="path">${C.units.map((u) => stageBlock(u, done, next, p)).join("")}</section>
 
-        <section class="sect" id="account-card" hidden></section>
-
         <section class="sect">
           <h2>About you</h2>
           <p class="note">Your details fill the lines you say, like “Saya dari ${esc(me.country || "Australia")}”. Saved in this browser only.</p>
@@ -237,7 +235,6 @@
           </form>
         </section>
       </div>`;
-    if (window.LBAccount) window.LBAccount.render();
     document.getElementById("you").addEventListener("input", () => {
       store.set("profile", { ...profile(), name: document.getElementById("you-name").value.trim(), country: document.getElementById("you-country").value });
     });

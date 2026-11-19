@@ -231,9 +231,13 @@ button { font: inherit; color: inherit; }
   .learn .brand img { width: 30px; height: 30px; }
   .learn .top nav { gap: 12px; font-size: 14px; }
 }
+@media (max-width: 520px) {
+  .learn .brand { font-size: 0; gap: 0; }
+  .learn .brand img { width: 34px; height: 34px; }
+  .learn .top nav { gap: 12px; font-size: 14.5px; }
+}
 @media (max-width: 360px) {
-  .learn .brand span, .learn .brand { font-size: 0; }
-  .learn .brand img { width: 32px; height: 32px; }
+  .learn .top nav { gap: 9px; font-size: 13.5px; }
 }
 .btn.ghost.small, .btn.ghost { box-shadow: none; }
 
@@ -268,13 +272,33 @@ button { font: inherit; color: inherit; }
   .path::before { display: none; }
 }
 
-/* Account */
-.account { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
-.auth { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; border-radius: 14px; font-size: 17px; font-weight: 700; cursor: pointer; }
+/* Account: top-right of the header */
+.learn .top .wrap { gap: 14px; }
+.learn .top nav { margin-left: auto; }
+.acct { position: relative; flex: 0 0 auto; }
+.acct-btn { border: 0; cursor: pointer; font: inherit; font-weight: 800; font-size: 15px; color: #fff; background: var(--sambal);
+  border-radius: 999px; padding: 8px 14px; box-shadow: 0 3px 0 var(--sambal-dark); white-space: nowrap; }
+.acct-btn.me { width: 38px; height: 38px; padding: 0; background: var(--laut); box-shadow: 0 3px 0 #145866; font-size: 16px; }
+.acct-menu { position: absolute; right: 0; top: calc(100% + 10px); z-index: 30; width: min(300px, calc(100vw - 32px));
+  background: var(--card); border-radius: 18px; padding: 14px; box-shadow: 0 14px 40px rgba(60,40,20,.22);
+  display: flex; flex-direction: column; gap: 8px; animation: rise .18s ease both; }
+.acct-menu b { font-size: 16px; }
+.acct-menu small { color: var(--ink-soft); font-size: 13.5px; line-height: 1.35; }
+.acct-menu .acct-sync { color: var(--laut); font-weight: 650; }
+.acct-menu button:not(.auth) { text-align: left; border: 0; background: none; font: inherit; font-weight: 700; padding: 8px 4px; cursor: pointer; border-top: 1px solid var(--line); color: var(--ink); }
+.acct-menu button.danger { color: var(--salah); }
+.auth { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; border-radius: 12px; font: inherit; font-size: 15.5px; font-weight: 700; cursor: pointer; }
 .auth.apple { background: #000; color: #fff; border: 0; }
 .auth.google { background: #fff; color: var(--ink); border: 1.5px solid var(--line); }
-.auth.google b { color: #4285F4; font-size: 18px; }
-.account.signed { flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; }
-.account.signed b { display: block; }
-.account.signed small { color: var(--ink-soft); }
-.account-actions { display: flex; flex-wrap: wrap; gap: 4px; }
+.auth.google b { color: #4285F4; font-size: 17px; }
+.acct-toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 40; background: var(--ink); color: #fff;
+  padding: 10px 16px; border-radius: 14px; font-size: 14.5px; max-width: calc(100vw - 32px); box-shadow: 0 8px 24px rgba(0,0,0,.2); }
+@media (max-width: 480px) {
+  .acct-btn { padding: 7px 11px; font-size: 14px; }
+  .acct-btn.me { width: 34px; height: 34px; }
+  .learn .top .wrap { gap: 10px; }
+}
+
+.learn .top { position: relative; z-index: 25; }
+.gis { min-height: 0; display: flex; justify-content: center; }
+.gis:empty { display: none; }
