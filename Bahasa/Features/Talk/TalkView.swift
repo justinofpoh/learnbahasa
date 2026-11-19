@@ -19,6 +19,9 @@ struct TalkView: View {
             CozyPage(title: "Ngobrol", subtitle: "Practise here, then try it for real", profile: true) {
                 TabArt.talk.view
             } accessory: {
+                if progress.streak > 0 {
+                    ArtChip(text: "\(progress.streak)", symbol: "flame.fill", tint: Theme.sambal)
+                }
                 if progress.livedCount > 0 {
                     ArtChip(text: "\(progress.livedCount) lived", symbol: "sparkles", tint: Theme.sawah)
                 }

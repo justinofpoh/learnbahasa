@@ -33,9 +33,36 @@ def field(width, height):
     return column.resize((width, height), Image.Resampling.BILINEAR)
 
 
+FACES = ["ibu-wayan", "pak-agus", "bu-ketut", "putu", "mbok-kadek", "bu-sari", "bli-made", "mbak-rina", "pak-nyoman", "kak-dewi"]
+
+
+def neighbours(canvas, cy, left, right, height):
+    """The cast on either side of the name, gently staggered, on cream discs."""
+    from PIL import ImageFilter
+    size = int(height * 0.2)
+    gap = int(size * 0.18)
+    half = len(FACES) // 2
+    for side, names in ((-1, FACES[:half]), (1, FACES[half:])):
+        for i, name in enumerate(names):
+            face = Image.open(ROOT.parent / "site" / "assets" / f"face-{name}.png").convert("RGBA").resize((size, size), Image.Resampling.LANCZOS)
+            step = (i + 1) * (size + gap)
+            x = int(left - step - gap) if side < 0 else int(right + gap + i * (size + gap) + gap)
+            y = int(cy - size / 2 + (size * 0.22 if i % 2 else -size * 0.22))
+            disc = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
+            d = ImageDraw.Draw(disc)
+            d.ellipse((x - 10, y + 6, x + size + 10, y + size + 26), fill=(60, 20, 8, 90))
+            disc = disc.filter(ImageFilter.GaussianBlur(14))
+            d = ImageDraw.Draw(disc)
+            d.ellipse((x - 10, y - 10, x + size + 10, y + size + 10), fill=CREAM + (255,))
+            base = canvas.convert("RGBA")
+            base.alpha_composite(disc)
+            base.alpha_composite(face, (x, y))
+            canvas.paste(base.convert("RGB"))
+
+
 def render(width, height, safe, out, text_size):
     canvas = field(width, height)
-    word = "Bahasa"
+    word = "Learn Bahasa"
     face = font(text_size)
     draw = ImageDraw.Draw(canvas)
     bbox = draw.textbbox((0, 0), word, font=face)
@@ -44,6 +71,7 @@ def render(width, height, safe, out, text_size):
     x = sx + (sw - tw) / 2 - bbox[0]
     y = sy + (sh - th) / 2 - bbox[1]
     draw.text((x, y), word, font=face, fill=CREAM)
+    neighbours(canvas, sy + sh / 2, x + bbox[0] - 60, x + bbox[0] + tw + 60, height)
 
     left = x + bbox[0]
     top = y + bbox[1]
@@ -56,8 +84,8 @@ def render(width, height, safe, out, text_size):
 
 
 def main():
-    render(*HEADER, 340)
-    render(*SEARCH, 600)
+    render(*HEADER, 200)
+    render(*SEARCH, 320)
 
 
 if __name__ == "__main__":

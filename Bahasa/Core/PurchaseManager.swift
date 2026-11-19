@@ -185,6 +185,8 @@ final class PurchaseManager: ObservableObject {
         }
         plan = newPlan
         UserDefaults.standard.set(newPlan.rawValue, forKey: Self.cacheKey)
+        Reminders.shared.scheduleTrialEnding(on: subscription?.isInTrial == true ? subscription?.expirationDate : nil,
+                                             planName: ProductIDs.subscriptionGroupName)
     }
 
     // MARK: Display helpers, always from live prices

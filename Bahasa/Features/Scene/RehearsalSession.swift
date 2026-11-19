@@ -185,7 +185,7 @@ final class RehearsalSession: ObservableObject {
             items.append(Item(kind: .them(text: text, gloss: filler.fill(line.gloss), chips: line.chips, reaction: false), nodeID: id))
         }
         phase = stage == .watch ? .watching : .resolving
-        await speak(text)
+        await speak(text, as: scene.character.id)
 
         if node.isEnd {
             await pause(0.5)
@@ -214,7 +214,7 @@ final class RehearsalSession: ObservableObject {
         }
         flags.formUnion(reply.sets)
         expression = .happy
-        await speak(text)
+        await speak(text, as: "learner")
         await waitForLearner()
         await pause(0.3)
         if let next = reply.nextNode(for: mood) { await present(next) }
@@ -334,7 +334,7 @@ final class RehearsalSession: ObservableObject {
             }
 
             Task {
-                await speak(text)
+                await speak(text, as: "learner")
                 if option.grade == .understood, let coach = option.coach {
                     withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
                         items.append(Item(kind: .coach(filler.fill(coach), .understood), nodeID: node.id))
@@ -396,7 +396,7 @@ final class RehearsalSession: ObservableObject {
                     items.append(Item(kind: .them(text: text, gloss: filler.fill(reaction.gloss), chips: nil, reaction: true), nodeID: node.id))
                 }
                 phase = .resolving
-                await speak(text)
+                await speak(text, as: scene.character.id)
             }
             if let coach {
                 withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
@@ -410,7 +410,7 @@ final class RehearsalSession: ObservableObject {
                     withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
                         items.append(Item(kind: .coach("The line: \(filler.fill(n.text))", .natural), nodeID: node.id))
                     }
-                    await speak(filler.fill(n.text))
+                    await speak(filler.fill(n.text), as: "learner")
                 }
                 await pause(1.2)
                 await advanceRecall()
@@ -525,10 +525,10 @@ final class RehearsalSession: ObservableObject {
 
     // MARK: - Helpers
 
-    private func speak(_ text: String) async {
+    private func speak(_ text: String, as role: String) async {
         guard !cancelled else { return }
         let speaker = Speaker.shared
-        speaker.say(text)
+        speaker.say(text, voice: role)
         let started = Date()
         try? await Task.sleep(for: .seconds(0.2))
         while speaker.speakingText == text, Date().timeIntervalSince(started) < 8 {

@@ -1,27 +1,44 @@
-2. PURPOSE AND TARGET AUDIENCE
-Bahasa teaches Indonesian to English speakers who live in or travel to Indonesia (expats, digital nomads, long-stay visitors, especially in Bali). Most language apps teach isolated vocabulary. Bahasa explains how Indonesian sentences are built (word order, time markers instead of tenses, negation, questions, prefixes) and then has learners practise real everyday conversations: ordering at a warung, haggling at a market, riding a Gojek, renting a room and making small talk. The app gives learners the grammar and the confidence to hold simple real conversations from the first week.
+APP REVIEW NOTES · Learn Bahasa 1.0
 
-3. SETUP AND ACCESS TO MAIN FEATURES
-No account, login, sign-up or sample files are needed. All content is free and unlocked on first launch. There is no user-generated content and no in-app purchases.
-- Learn tab: 7 units / 15 lessons. Tap "Up next" or any lesson row to open a lesson. Steps include concept cards, multiple choice, sentence building with word tiles and listening exercises. Tap Check to grade each step. Progress, XP and streak are saved on the device.
-- Talk tab: 5 Scenes (warung, ojek ride, market, renting a room, coffee with a friend), each with an animated illustration. Open a Scene and work through its stages in order: Watch (listen to the conversation, then answer 3 questions), Rehearse (choose or build replies), Perform (type or speak replies), Live (a cheat card and a check-in after trying it for real) and Recall (missed lines come back on later days). Every stage is free; later stages unlock after the earlier ones in the same Scene.
-- Speaking in Perform is optional. Tapping the microphone asks for Microphone and Speech Recognition permission. Recognition runs on-device only (requiresOnDeviceRecognition); if the device has no on-device Indonesian model, the app says so and typing works instead.
-- Patterns tab: grammar reference built from the lessons. Tap any row for details.
-- Phrases tab: phrasebook of 58 everyday phrases in 7 categories, with search. Tap a phrase to hear it spoken.
-Speaker icons read Indonesian aloud using the device's built-in Indonesian (id-ID) voice. The tortoise button plays it slowly. If audio is silent, make sure the ringer is on and the Indonesian voice is available in Settings > Accessibility > Spoken Content > Voices.
+1. PURPOSE AND TARGET AUDIENCE
+Learn Bahasa teaches everyday Indonesian to English speakers travelling to or living in Indonesia, especially Bali. Short lessons explain how Indonesian sentences work (word order, time words instead of tenses, negation, questions, prefixes). Then learners rehearse real conversations with illustrated neighbours: ordering at a warung, an ojek ride, haggling at the market, renting a room, laundry, the pharmacy, the motorbike workshop, a cafe, renting a scooter, visiting a temple and chatting with a neighbour.
 
-4. EXTERNAL SERVICES
-None. The app runs fully offline and makes no network requests. It uses no third-party SDKs, analytics, advertising, authentication, payment or AI services. All lesson content is bundled in the app. Speech output uses Apple's on-device AVSpeechSynthesizer, and optional speech input uses on-device SFSpeechRecognizer only, so no audio leaves the device. Progress is stored locally in UserDefaults and is never transmitted.
+2. SETUP AND ACCESS
+No account or login is needed. Sign-in is optional and only syncs progress with the website (learnbahasa.app/learn).
+First launch: a short welcome (7 pages) asks for a first name, country and a quick level check, then opens the first chat. To skip it, tap through with Next.
+- Learn tab: 11 units, 38 lessons. Tap "Up next" or any lesson row.
+- Talk tab: 12 chats ("Scenes"). Open one and tap Start. A chat runs in steps: listen first, then choose replies, then type or say them. Tap any Indonesian word to see its meaning.
+- Patterns tab: grammar reference. Phrases tab: phrasebook with search; tap to hear.
+- Profile button (top right of every tab): avatar, Bahasa Plus, account, level, chat speed, daily reminder.
+- Home-screen and Lock Screen widget "Daily Bahasa": streak, today's goal and the next neighbour.
 
-5. REGIONAL DIFFERENCES
-None. The app works the same and shows the same content in every region where it is available. The app interface is in English and the content teaches standard everyday Indonesian.
+3. IN-APP PURCHASES (Bahasa Plus)
+Auto-renewable subscriptions, group "Bahasa Plus":
+- com.justinpoh.bahasa.plus.annual: yearly, 7-day free trial
+- com.justinpoh.bahasa.plus.monthly: monthly
+Free forever: the warung and ojek chats, Learn units 1-2, all Patterns, all Phrases and word lookup.
+Where the paywall appears:
+- Talk tab: tap any chat card marked "Plus" (for example Bu Ketut at the pasar).
+- Learn tab: any lesson from unit 3 on.
+- After the learner finishes their first chat (one time).
+- Profile button > Bahasa Plus.
+The paywall shows price, period, trial terms, Restore Purchases, Terms of Use (Apple standard EULA) and the Privacy Policy. Purchases are processed by Apple StoreKit through the RevenueCat SDK. Manage or cancel: Profile > Bahasa Plus > Manage subscription. A local notification reminds trial users the day before the trial ends (only if they allowed notifications).
 
-6. REGULATED INDUSTRY / THIRD-PARTY MATERIAL
-Not applicable. The app does not operate in a regulated industry. All lesson text, conversations, phrases, illustrations and the app icon are original work created by the developer. The app contains no licensed or protected third-party material.
+4. ACCOUNTS (optional)
+Profile > Account > Sign in with Apple, or Continue with Google. This only saves and syncs learning progress (lessons, XP, chats, first name, country) with learnbahasa.app. Account deletion is in the app: Profile > Account > Delete account (deletes the account and its saved progress immediately).
 
-IN-APP PURCHASE (Bahasa Plus)
-- Auto-renewable subscriptions in group "Bahasa Plus": com.justinpoh.bahasa.plus.annual (7-day free trial) and com.justinpoh.bahasa.plus.monthly.
-- Free forever: the warung and ojek chats, Learn units 1-2, all Patterns, Phrases and word lookup.
-- To see the paywall: Talk tab > tap Bu Ketut (pasar), Bu Sari (kos) or Putu (ngopi), or Learn > any unit from 3 on.
-- Restore Purchases, Terms of Use (Apple standard EULA) and Privacy Policy are linked on the paywall.
-- Manage subscription: Talk > any free chat > profile button > "Bahasa Plus is on".
+5. PERMISSIONS
+- Microphone and Speech Recognition: only when the learner taps the microphone to say a reply. Recognition is on-device only; typing always works instead.
+- Notifications: asked only when the learner turns on the daily reminder (a card on the Learn tab after their first lesson or chat, or Profile > Daily reminder).
+
+6. EXTERNAL SERVICES
+- RevenueCat: subscription status (purchase history, not linked to identity unless signed in).
+- Supabase: optional account and progress sync (email, user ID, name, progress).
+No ads, no tracking, no analytics SDKs.
+Voices: Indonesian audio is pre-recorded with Supertonic (computer-generated, licence allows commercial use) and bundled in the app; lines without a recording use Apple's on-device id-ID voice.
+
+7. REGIONAL DIFFERENCES
+None.
+
+8. CONTENT
+All lessons, conversations, phrases, illustrations and the icon are original work by the developer.

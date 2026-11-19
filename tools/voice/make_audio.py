@@ -63,7 +63,7 @@ ST_VOICES = {
     "tutor": ("F2", 0.82), "learner": ("M1", 0.88),
     "ibu-wayan": ("F3", 0.88), "pak-agus": ("M3", 0.9), "bu-ketut": ("F4", 0.88), "bu-sari": ("F5", 0.88),
     "putu": ("M2", 0.92), "mbok-kadek": ("F1", 0.88), "mbak-rina": ("F4", 0.9), "bli-made": ("M4", 0.92),
-    "pak-nyoman": ("M5", 0.85),
+    "pak-nyoman": ("M5", 0.85), "mas-dimas": ("M2", 0.95), "pak-gede": ("M3", 0.88), "bli-komang": ("M4", 0.88),
 }
 
 # Same list as COUNTRIES in site/learn/app.js (the Indonesian names).
@@ -411,6 +411,26 @@ def write_index(lines):
     index = {key(r, t): file_id(r, t) for r, t in lines if os.path.exists(os.path.join(OUT, file_id(r, t) + ".mp3"))}
     json.dump(index, open(os.path.join(OUT, "index.json"), "w"), ensure_ascii=False, sort_keys=True)
     print(f"index.json: {len(index)} lines with audio")
+    mirror_to_app(index)
+
+
+APP_VOICES = os.path.join(os.path.dirname(__file__), "..", "..", "Bahasa", "Voices")
+
+
+def mirror_to_app(index):
+    """The iPhone app bundles the same recordings (Bahasa/Voices, compiled in automatically)."""
+    import shutil
+    os.makedirs(APP_VOICES, exist_ok=True)
+    keep = set(index.values())
+    for name in os.listdir(APP_VOICES):
+        if name.endswith(".mp3") and name[:-4] not in keep:
+            os.unlink(os.path.join(APP_VOICES, name))
+    for fid in keep:
+        dst = os.path.join(APP_VOICES, fid + ".mp3")
+        if not os.path.exists(dst):
+            shutil.copyfile(os.path.join(OUT, fid + ".mp3"), dst)
+    json.dump(index, open(os.path.join(APP_VOICES, "voices.json"), "w"), ensure_ascii=False, sort_keys=True)
+    print(f"Bahasa/Voices: {len(keep)} recordings")
 
 
 if __name__ == "__main__":

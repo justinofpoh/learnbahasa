@@ -49,6 +49,11 @@ struct ProfileSheet: View {
     @AppStorage("bahasa.onboarded") private var onboarded = true
     @AppStorage(ChatPace.storageKey) private var pace: ChatPace = .normal
     @AppStorage(ChatPace.waitKey) private var waitForMe = false
+    @AppStorage(Reminders.enabledKey) private var reminderOn = false
+    @State private var reminderTime: Date = {
+        let t = Reminders.shared.time
+        return Calendar.current.date(bySettingHour: t.hour ?? 19, minute: t.minute ?? 0, second: 0, of: Date()) ?? Date()
+    }()
     @State private var draft = LearnerProfile()
     @State private var paywall: PaywallContext?
     @State private var restoring = false
@@ -144,6 +149,22 @@ struct ProfileSheet: View {
                     }
                     Toggle("Wait for me", isOn: $waitForMe)
                         .tint(Theme.sambal)
+                    Toggle("Daily reminder", isOn: Binding(
+                        get: { reminderOn },
+                        set: { on in
+                            reminderOn = on
+                            Task { if on { reminderOn = await Reminders.shared.enable() } else { Reminders.shared.disable() } }
+                        }))
+                        .tint(Theme.sambal)
+                    if reminderOn {
+                        DatePicker("Remind me at", selection: Binding(
+                            get: { reminderTime },
+                            set: { date in
+                                reminderTime = date
+                                let c = Calendar.current.dateComponents([.hour, .minute], from: date)
+                                Reminders.shared.setTime(hour: c.hour ?? 19, minute: c.minute ?? 0)
+                            }), displayedComponents: .hourAndMinute)
+                    }
                 } header: {
                     Text("Learning")
                 } footer: {

@@ -6,7 +6,11 @@ struct SceneHomeView: View {
     var initialStage: Stage?
 
     @EnvironmentObject private var progress: ProgressStore
+    @EnvironmentObject private var purchases: PurchaseManager
     @Environment(\.dismiss) private var dismiss
+    @State private var paywall: PaywallContext?
+    /// The Plus offer after a learner's first finished chat is shown once, when they're happiest.
+    @AppStorage("bahasa.firstChatOffer") private var firstChatOfferShown = false
 
     @State private var playing: PlayRequest?
     @State private var queued: Stage?
@@ -36,6 +40,7 @@ struct SceneHomeView: View {
             greetingBubble
             nextButton
             goalCard
+            if let next = teaserScene { teaserCard(next) }
             if let tip = scene.culture.first { tipCard(tip) }
             if !scene.warmUps.isEmpty { prep }
             yourLines
@@ -46,6 +51,7 @@ struct SceneHomeView: View {
             }
             .environmentObject(progress)
         }
+        .paywall($paywall)
         .sheet(isPresented: $showLive) {
             LiveCardView(scene: scene)
                 .environmentObject(progress)
@@ -78,9 +84,52 @@ struct SceneHomeView: View {
     }
 
     private func runQueued() {
-        guard let next = queued else { return }
+        guard let next = queued else {
+            offerPlusAfterFirstChat()
+            return
+        }
         queued = nil
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { open(next, force: true) }
+    }
+
+    private func offerPlusAfterFirstChat() {
+        guard !purchases.isPlus, !firstChatOfferShown, record.stars > 0 else { return }
+        firstChatOfferShown = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { paywall = .firstChat(scene) }
+    }
+
+    /// In a free chat that's been played, a gentle look at the next neighbour (in Plus).
+    private var teaserScene: RehearsalScene? {
+        guard !purchases.isPlus, Access.freeSceneIDs.contains(scene.id), record.stars > 0 else { return nil }
+        return SceneLibrary.scenes.first { !Access.scene($0.id, plan: .free) }
+    }
+
+    private func teaserCard(_ next: RehearsalScene) -> some View {
+        Button {
+            Haptics.select()
+            paywall = .scene(next)
+        } label: {
+            HStack(spacing: 12) {
+                PlaceIllustration(scene: next, expression: .happy, compact: true)
+                    .frame(width: 92, height: 64)
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Next door")
+                        .font(.ui(12, .bold))
+                        .foregroundStyle(next.color)
+                    Text("\(next.character.name) is waiting")
+                        .font(.rounded(16, .bold))
+                        .foregroundStyle(Theme.ink)
+                    Text(next.titleEn)
+                        .font(.ui(13))
+                        .foregroundStyle(Theme.inkSoft)
+                }
+                Spacer(minLength: 0)
+                PlusBadge(size: 24)
+            }
+            .cozyCard(padding: 12)
+        }
+        .buttonStyle(.squish)
     }
 
     private func open(_ stage: Stage, force: Bool = false) {
@@ -146,7 +195,7 @@ struct SceneHomeView: View {
             .onTapGesture {
                 Haptics.pop()
                 greeting = hello
-                speaker.say(hello)
+                speaker.say(hello, voice: scene.character.id)
             }
             .accessibilityAddTraits(.isButton)
             .accessibilityHint("Says hello")
@@ -159,7 +208,7 @@ struct SceneHomeView: View {
         return Button {
             Haptics.tap()
             greeting = hello
-            speaker.say(hello)
+            speaker.say(hello, voice: scene.character.id)
         } label: {
             HStack(alignment: .bottom, spacing: 10) {
                 CharacterPortrait(characterID: scene.character.id, tint: tint, size: 52, speaking: speaking)

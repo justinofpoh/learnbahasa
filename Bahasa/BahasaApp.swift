@@ -39,7 +39,17 @@ struct BahasaApp: App {
                     account.start(progress: progress)
                 }
                 .onChange(of: scenePhase) { _, phase in
-                    if phase == .active { Task { await account.sync() } }
+                    if phase == .active {
+                        Task {
+                            await account.sync()
+                            await Reminders.shared.refreshStatus()
+                        }
+                        WidgetBridge.update(progress: progress, plan: purchases.plan)
+                    }
+                    if phase == .background {
+                        Reminders.shared.scheduleDaily(streak: progress.streak)
+                        WidgetBridge.update(progress: progress, plan: purchases.plan)
+                    }
                 }
         }
     }

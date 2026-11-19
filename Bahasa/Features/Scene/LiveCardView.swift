@@ -111,7 +111,7 @@ struct LiveCardView: View {
             ForEach(Array(keyLines.enumerated()), id: \.offset) { _, line in
                 Button {
                     Haptics.tap()
-                    Speaker.shared.say(line.text)
+                    Speaker.shared.say(line.text, voice: "learner")
                 } label: {
                     HStack(alignment: .top, spacing: 12) {
                         VStack(alignment: .leading, spacing: 3) {

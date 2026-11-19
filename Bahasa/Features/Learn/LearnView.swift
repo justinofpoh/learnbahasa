@@ -5,6 +5,7 @@ struct LearnView: View {
     @EnvironmentObject private var purchases: PurchaseManager
     @State private var openLesson: Lesson?
     @State private var paywall: PaywallContext?
+    @AppStorage(Reminders.askedKey) private var reminderAsked = false
 
     private var greeting: (indo: String, en: String) {
         switch Calendar.current.component(.hour, from: Date()) {
@@ -20,10 +21,16 @@ struct LearnView: View {
             CozyPage(title: greeting.indo, subtitle: greeting.en, profile: true) {
                 TabArt.learn.view
             } accessory: {
-                if progress.streak > 0 {
-                    ArtChip(text: "\(progress.streak)", symbol: "flame.fill", tint: Theme.sambal)
-                }
+                ArtChip(text: progress.streak > 0 ? "\(progress.streak)-day streak" : "Start a streak",
+                        symbol: "flame.fill", tint: Theme.sambal)
             } content: {
+                if !reminderAsked && (progress.lessonsDone > 0 || progress.rehearsal.scenes.values.contains { $0.stars > 0 }) {
+                    Nudge(symbol: "bell.fill", tint: Theme.kunyit, title: "A gentle daily reminder?",
+                          note: "One nudge from a neighbour at 7 pm. Change it any time.") {
+                        Task { await Reminders.shared.enable() }
+                        reminderAsked = true
+                    }
+                }
                 if let next = progress.nextLesson {
                     UpNextCard(unit: next.unit, lesson: next.lesson, goal: progress.goalFraction) {
                         open(next.lesson)

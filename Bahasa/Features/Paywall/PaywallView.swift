@@ -7,9 +7,12 @@ enum PaywallContext: Identifiable {
     case scene(RehearsalScene)
     case unit(Unit)
     case general
+    /// Right after the learner finishes their first chat.
+    case firstChat(RehearsalScene)
 
     var id: String {
         switch self {
+        case .firstChat(let s): return "first." + s.id
         case .scene(let s): return "scene." + s.id
         case .unit(let u): return "unit." + u.id
         case .general: return "general"
@@ -18,6 +21,7 @@ enum PaywallContext: Identifiable {
 
     var headline: String {
         switch self {
+        case .firstChat: return "Bagus! You did it."
         case .scene(let s): return "\(s.character.name) is waiting"
         case .unit(let u): return "Unit \(u.number) is in Plus"
         case .general: return "Bahasa Plus"
@@ -26,6 +30,9 @@ enum PaywallContext: Identifiable {
 
     var subheadline: String {
         switch self {
+        case .firstChat:
+            let more = SceneLibrary.scenes.filter { !Access.scene($0.id, plan: .free) }.count
+            return "That was a real chat. \(more) more neighbours are ready for the rest of your trip."
         case .scene(let s): return "\(s.titleEn) opens with Bahasa Plus."
         case .unit(let u): return "\(u.indoTitle) and every lesson after it open with Plus."
         case .general: return "Every neighbour, every lesson."
@@ -34,6 +41,7 @@ enum PaywallContext: Identifiable {
 
     var focusCharacterID: String? {
         if case .scene(let s) = self { return s.character.id }
+        if case .firstChat(let s) = self { return s.character.id }
         return nil
     }
 }
@@ -82,6 +90,7 @@ struct PaywallView: View {
                 if purchases.isPlus && !preview {
                     activeCard
                 } else {
+                    lockedPreview
                     features
                     planSection
                 }
@@ -139,13 +148,57 @@ struct PaywallView: View {
         }
     }
 
+    // MARK: Locked chats
+
+    /// The drawings of the chats Plus opens, so it's clear what's waiting.
+    private var lockedPreview: some View {
+        let locked = SceneLibrary.scenes.filter { !Access.scene($0.id, plan: .free) }
+        return VStack(alignment: .leading, spacing: 10) {
+            Text("Waiting for you")
+                .font(.rounded(17, .bold))
+                .foregroundStyle(Theme.ink)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(locked) { scene in
+                        VStack(alignment: .leading, spacing: 0) {
+                            PlaceIllustration(scene: scene, expression: .happy, compact: true)
+                                .frame(width: 150, height: 96)
+                                .clipped()
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(scene.character.name)
+                                    .font(.rounded(14, .bold))
+                                    .foregroundStyle(Theme.ink)
+                                Text(scene.titleEn)
+                                    .font(.ui(11.5))
+                                    .foregroundStyle(Theme.inkSoft)
+                                    .lineLimit(1)
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 8)
+                        }
+                        .frame(width: 150)
+                        .background(Theme.card)
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .shadow(color: Theme.kopi.opacity(0.08), radius: 6, y: 3)
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+            .scrollClipDisabled()
+        }
+    }
+
     // MARK: Features
 
     private var features: some View {
         VStack(spacing: 0) {
-            FeatureRow(symbol: "bubble.left.and.bubble.right.fill", tint: Theme.sambal,
+            FeatureRow(symbol: "map.fill", tint: Theme.sambal,
+                       title: "Your whole trip",
+                       note: "\(SceneLibrary.scenes.count) chats and \(Curriculum.units.count) stages: warung to temple, ojek to apotek.")
+            Divider().overlay(Theme.line.opacity(0.7)).padding(.leading, 58)
+            FeatureRow(symbol: "bubble.left.and.bubble.right.fill", tint: Theme.jambu,
                        title: "Every neighbour",
-                       note: "\(SceneLibrary.scenes.count) chats: bargain with Bu Ketut, see Mbak Rina at the apotek, fix a tyre with Bli Made.")
+                       note: "Bargain with Bu Ketut, see Mbak Rina at the apotek, fix a tyre with Bli Made.")
             Divider().overlay(Theme.line.opacity(0.7)).padding(.leading, 58)
             FeatureRow(symbol: "book.closed.fill", tint: Theme.indigo,
                        title: "Every lesson",
@@ -477,13 +530,16 @@ private struct PlanCard: View {
 private struct NeighboursBand: View {
     var focusID: String?
 
-    private let cast: [(id: String, tint: Color, free: Bool)] = [
-        ("ibu-wayan", Theme.laut, true),
-        ("pak-agus", Theme.indigo, true),
-        ("bu-ketut", Theme.jambu, false),
-        ("bu-sari", Theme.sawah, false),
-        ("putu", Theme.kopi, false)
-    ]
+    private var cast: [(id: String, tint: Color, free: Bool)] {
+        let free = SceneLibrary.scenes.filter { Access.freeSceneIDs.contains($0.id) }
+        let plus = SceneLibrary.scenes.filter { !Access.freeSceneIDs.contains($0.id) }
+        var list = (free + plus.prefix(4)).map { (id: $0.character.id, tint: $0.color, free: Access.freeSceneIDs.contains($0.id)) }
+        if let focusID, !list.contains(where: { $0.id == focusID }),
+           let s = SceneLibrary.scenes.first(where: { $0.character.id == focusID }) {
+            list[list.count - 1] = (id: s.character.id, tint: s.color, free: false)
+        }
+        return list
+    }
 
     var body: some View {
         ZStack {
