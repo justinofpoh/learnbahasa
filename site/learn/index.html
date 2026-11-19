@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Learn · Learn Bahasa</title>
+  <meta name="description" content="Learn Indonesian in your browser: free lessons, a chat with Ibu Wayan at her warung, and a phrasebook for Bali.">
+  <meta name="theme-color" content="#F6F1E8">
+  <link rel="icon" type="image/png" href="/assets/favicon.png">
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/learn/learn.css">
+</head>
+<body class="learn">
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="/"><img src="/assets/apple-touch-icon.png" alt="">Learn Bahasa</a>
+      <nav>
+        <a href="#/" data-nav="home">Learn</a>
+        <a href="#/phrases" data-nav="phrases">Phrases</a>
+        <a href="#/patterns" data-nav="patterns">Patterns</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap" id="view" aria-live="polite">
+    <p style="padding:40px 0;color:var(--ink-soft)">Loading your lessons…</p>
+  </main>
+
+  <footer class="wrap" style="padding:30px 16px 40px;color:var(--ink-soft);font-size:13.5px">
+    Free to use, saved in this browser. Voices are computer-generated (Supertonic by Supertone), not real recordings.
+    · <a href="/privacy/">Privacy</a> · <a href="/support/">Help</a>
+  </footer>
+
+  <noscript><p class="wrap">Learn Bahasa on the web needs JavaScript turned on.</p></noscript>
+  <script src="/learn/config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js" defer></script>
+  <script src="/learn/app.js" defer></script>
+  <script src="/learn/account.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+.swiftpm/
+# macOS
+.DS_Store
+# Website build tooling
+node_modules/
+.vercel/
+# Secrets never go in the repo
+*.p8
+.env
+.env.*

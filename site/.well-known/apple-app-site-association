@@ -1,0 +1,12 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["Y4648M7S2X.com.justinpoh.bahasa"],
+        "components": [
+          { "/": "/talk/*", "comment": "Open a chat Scene in the app" }
+        ]
+      }
+    ]
+  }
+}
