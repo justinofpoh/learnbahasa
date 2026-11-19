@@ -11,14 +11,18 @@ struct BahasaApp: App {
     init() {
         Appearance.apply()
         #if DEBUG
-        let lessonProblems = LessonValidator.validateAll()
-        if !lessonProblems.isEmpty {
-            print("LESSON PROBLEMS:\n" + lessonProblems.joined(separator: "\n"))
-            assertionFailure("Lesson content problems:\n" + lessonProblems.joined(separator: "\n"))
-        }
-        let problems = SceneValidator.validateAll()
-        if !problems.isEmpty {
-            assertionFailure("Scene content problems:\n" + problems.joined(separator: "\n"))
+        // Content checks run after launch so the launch screen isn't held up; problems still stop a DEBUG run.
+        Task.detached(priority: .utility) {
+            let lessonProblems = LessonValidator.validateAll()
+            if !lessonProblems.isEmpty {
+                print("LESSON PROBLEMS:\n" + lessonProblems.joined(separator: "\n"))
+                assertionFailure("Lesson content problems:\n" + lessonProblems.joined(separator: "\n"))
+            }
+            let problems = SceneValidator.validateAll()
+            if !problems.isEmpty {
+                print("SCENE PROBLEMS:\n" + problems.joined(separator: "\n"))
+                assertionFailure("Scene content problems:\n" + problems.joined(separator: "\n"))
+            }
         }
         #endif
     }
